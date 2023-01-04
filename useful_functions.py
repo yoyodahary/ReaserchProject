@@ -41,12 +41,34 @@ def lb(rep):
           instances.append(rep[j])
   return sum
 
+def ls(rep):
+  sum = 0
+  for i in range(len(rep)):
+    instances = []
+    for j in range(i):
+      if rep[j] < rep[i]:
+        if rep[j] not in instances:
+          sum += 1
+          instances.append(rep[j])
+  return sum
+
 def rs(rep):
   sum = 0
   for i in range(len(rep)):
     instances = []
     for j in range(i+1,len(rep)):
       if rep[j] < rep[i]:
+        if rep[j] not in instances:
+          sum += 1
+          instances.append(rep[j])
+  return sum
+
+def rb(rep):
+  sum = 0
+  for i in range(len(rep)):
+    instances = []
+    for j in range(i+1,len(rep)):
+      if rep[j] > rep[i]:
         if rep[j] not in instances:
           sum += 1
           instances.append(rep[j])
