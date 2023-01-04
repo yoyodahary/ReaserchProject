@@ -1,3 +1,4 @@
+
 def get_partitions(set_):
   if not set_:
     yield []
@@ -79,5 +80,25 @@ def canonical_maj(permutation):
     major_index = 0
     for i in range(len(permutation) - 1):
         if permutation[i] < permutation[i + 1]:
-            major_index += i + 1
+            major_index += len(permutation)-(i+1)
     return major_index
+
+rep_dict = {"mah":sort_lists_by_largest_element,"can":sort_lists_by_smallest_element}
+
+def get_a_statistic(partitions,rep_type:str,statistic,length:int):
+  partitions_statistic_dict={}
+  for partition in partitions:
+    partition = rep_dict[rep_type](partition)
+    partition_rep = get_representation(partition,length)
+
+    rep_statistic = statistic(partition_rep)
+
+    if rep_statistic not in partitions_statistic_dict:
+      partitions_statistic_dict[rep_statistic] = 1
+    else:
+      partitions_statistic_dict[rep_statistic] += 1
+
+  return partitions_statistic_dict
+
+def print_dict(dictionary:dict):
+  print([dictionary[x] for x in sorted(dictionary.keys())])
