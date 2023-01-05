@@ -90,18 +90,28 @@ def maj(permutation):
     return major_index
 
 
-def canonical_inv(rep):
+def magic_inv(rep):
     inversion = 0
     for i in range(len(rep)):
         for j in range(i + 1, len(rep)):
             if rep[i] < rep[j]:
                 inversion += 1
+
+    print(str(rep)+'\t'+str(inversion))
     return inversion
+
+def magic_maj(permutation):
+    major_index = 0
+    for i in range(len(permutation) - 1):
+        if permutation[i] < permutation[i + 1]:
+            major_index += len(permutation)-(i+1)
+    print(str(permutation)+'\t'+str(major_index))
+    return major_index
 
 def canonical_maj(permutation):
     major_index = 0
     for i in range(len(permutation) - 1):
-        if permutation[i] < permutation[i + 1]:
+        if permutation[i] > permutation[i + 1]:
             major_index += len(permutation)-(i+1)
     return major_index
 
