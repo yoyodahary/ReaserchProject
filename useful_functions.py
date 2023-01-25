@@ -1,4 +1,5 @@
 
+''' setup functions '''
 def get_partitions(set_):
   if not set_:
     yield []
@@ -29,6 +30,27 @@ def get_representation(partition, n):
         string_rep.append(partition.index(part)+1)
 
   return string_rep
+
+def get_a_statistic(partitions,rep_type:str,statistic,length:int):
+  partitions_statistic_dict={}
+  for partition in partitions:
+    partition = rep_dict[rep_type](partition)
+    partition_rep = get_representation(partition,length)
+
+    rep_statistic = statistic(partition_rep)
+
+    if rep_statistic not in partitions_statistic_dict:
+      partitions_statistic_dict[rep_statistic] = 1
+    else:
+      partitions_statistic_dict[rep_statistic] += 1
+
+  return partitions_statistic_dict
+
+def print_dict(dictionary:dict):
+  print([dictionary[x] for x in sorted(dictionary.keys())])
+
+''' subtle inversion like statistics from wachs and white '''
+
 
 def lb(rep):
   sum = 0
@@ -74,6 +96,8 @@ def rb(rep):
           instances.append(rep[j])
   return sum
 
+''' regular inv and maj statistics on the mahonian representation '''
+
 def inv(rep):
     inversion = 0
     for i in range(len(rep)):
@@ -101,6 +125,57 @@ def maj_d(permutation,d = 5):
               major_index_d += 1
     # print(str(permutation)+'\t'+str(major_index_d))
     return major_index_d
+
+def div_k(rep,k = 2):
+  sum = 0
+  for i in range(len(rep)):
+    for j in range(i+1,len(rep)):
+      if rep[i]/rep[j]>1 and rep[i]/rep[j]<=k:
+        sum += 1
+  for i in range(len(rep)-1):
+    if rep[i]/rep[i+1]>k:
+      sum+=i+1
+  return sum
+
+def stat_even(rep,k = 2):
+  sum = 0
+  for i in range(len(rep)):
+    for j in range(i+1,len(rep)):
+      if rep[i]>rep[j] and rep[j]%2==1:
+        sum += 1
+  for i in range(len(rep)-1):
+    if rep[i]>rep[i+1] and rep[i+1]%2==0:
+      sum+=i+1
+  return sum
+
+''' 
+maj and inv statistics that are equidistributed on the canonical representation 
+and equal the regular maj and inv on the mahonian representation
+'''
+
+def canonical_maj(permutation):
+    major_index = 0
+    for i in range(len(permutation) - 1):
+        if permutation[i] > permutation[i + 1]:
+            major_index += len(permutation)-(i+1)
+    return major_index
+
+def canonical_stat_even(permutation):
+  sum = 0
+  for i in range(len(permutation)):
+    for j in range(i+1,len(permutation)):
+      if permutation[i]>permutation[j] and permutation[i]%2==1:
+        sum += 1
+  for i in range(len(permutation)-1):
+    if permutation[i]>permutation[i+1] and permutation[i]%2==0:
+      sum+=len(permutation)-(i+1)
+  return sum
+
+rep_dict = {"mah":sort_lists_by_largest_element,"can":sort_lists_by_smallest_element}
+
+''' 
+reversed version of maj and inv statistics that are equidistributed on the canonical representation 
+'''
 
 def magic_inv(rep):
     inversion = 0
@@ -134,55 +209,6 @@ def magic_maj_d(permutation,d = 2):
     #print(str(permutation)+'\t'+str(major_index_d))
     return major_index_d
 
-def canonical_maj(permutation):
-    major_index = 0
-    for i in range(len(permutation) - 1):
-        if permutation[i] > permutation[i + 1]:
-            major_index += len(permutation)-(i+1)
-    return major_index
-
-rep_dict = {"mah":sort_lists_by_largest_element,"can":sort_lists_by_smallest_element}
-
-def get_a_statistic(partitions,rep_type:str,statistic,length:int):
-  partitions_statistic_dict={}
-  for partition in partitions:
-    partition = rep_dict[rep_type](partition)
-    partition_rep = get_representation(partition,length)
-
-    rep_statistic = statistic(partition_rep)
-
-    if rep_statistic not in partitions_statistic_dict:
-      partitions_statistic_dict[rep_statistic] = 1
-    else:
-      partitions_statistic_dict[rep_statistic] += 1
-
-  return partitions_statistic_dict
-
-def print_dict(dictionary:dict):
-  print([dictionary[x] for x in sorted(dictionary.keys())])
-
-def div_k(rep,k = 2):
-  sum = 0
-  for i in range(len(rep)):
-    for j in range(i+1,len(rep)):
-      if rep[i]/rep[j]>1 and rep[i]/rep[j]<=k:
-        sum += 1
-  for i in range(len(rep)-1):
-    if rep[i]/rep[i+1]>k:
-      sum+=i+1
-  return sum
-
-def stat_even(rep,k = 2):
-  sum = 0
-  for i in range(len(rep)):
-    for j in range(i+1,len(rep)):
-      if rep[i]>rep[j] and rep[j]%2==1:
-        sum += 1
-  for i in range(len(rep)-1):
-    if rep[i]>rep[i+1] and rep[i+1]%2==0:
-      sum+=i+1
-  return sum
-
 def magic_stat_even(rep):
   sum = 0
   for i in range(len(rep)):
@@ -204,6 +230,54 @@ def magic_div_k(rep,k = 2):
     if rep[i]/rep[i+1]<1/k:
       sum+=len(rep)-(i+1)
   return sum
+
+''' Eularian distribution '''
+
+def exc(rep):
+  exc = 0
+  sorted_rep = sorted(rep)
+  for i in range(len(rep)):
+    if rep[i]>sorted_rep[i]:
+      exc+=1
+  return exc
+
+def des(rep):
+  des = 0
+  for i in range(len(rep) - 1):
+    if rep[i] > rep[i + 1]:
+        des += 1
+  return des
+
+def asc(rep):
+  asc = 0
+  for i in range(len(rep) - 1):
+    if rep[i] < rep[i + 1]:
+        asc += 1
+  return asc
+
+def exc_rev(rep):
+  exc_rev = 0
+  sorted_rep = sorted(rep)
+  for i in range(len(rep)):
+    if rep[i]<sorted_rep[i]:
+      exc_rev+=1
+  return exc_rev
+
+def exc_des(rep):
+
+  exc_des = 0
+  sorted_rep = sorted(rep)
+  for i in range(len(rep)):
+    if rep[i]+1>sorted_rep[i]:
+      exc_des+=1
+
+  for i in range(len(rep) - 1):
+    if rep[i]+1 > rep[i + 1]:
+        exc_des += 1
+
+  return exc_des
+
+
 
 
 
