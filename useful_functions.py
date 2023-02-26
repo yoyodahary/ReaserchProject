@@ -1,5 +1,9 @@
 
 ''' setup functions '''
+import copy
+import math
+
+
 def get_partitions(set_):
   if not set_:
     yield []
@@ -148,6 +152,28 @@ def stat_even(rep,k = 2):
       sum+=i+1
   return sum
 
+def stat_third(rep,k = 2):
+  sum = 0
+  for i in range(len(rep)):
+    for j in range(i+1,len(rep)):
+      if rep[i]>rep[j] and rep[j]%3==1:
+        sum += 1
+  for i in range(len(rep)-1):
+    if rep[i]>rep[i+1] and rep[i+1]%3==0:
+      sum+=i+1
+  return sum
+
+def k_maj(rep,k = 2):
+  sum_k_major = 0
+  for i in range(len(rep)):
+    for j in range(i+1,len(rep)):
+      if rep[i]>rep[j] and rep[i]<rep[j]+k:
+        sum_k_major += 1
+  for i in range(len(rep)-1):
+    if rep[i]>=rep[i+1] +k:
+      sum_k_major+=i+1 
+  return sum_k_major
+
 ''' 
 maj and inv statistics that are equidistributed on the canonical representation 
 and equal the regular maj and inv on the mahonian representation
@@ -277,9 +303,246 @@ def exc_des(rep):
 
   return exc_des
 
+def z(rep,func = maj):
+  z_sum = 0
+  for i in range(len(rep)):
+    for j in range(i+1,len(rep)):
+      arr_i_j = [a for a in rep if a == i or a == j]
+      z_sum += func(arr_i_j)
+  return z_sum
+
+def canonical_z(rep,func = canonical_maj):
+  z_sum = 0
+  for i in range(len(rep)):
+    for j in range(i+1,len(rep)):
+      arr_i_j = [a for a in rep if a == i or a == j]
+      z_sum += func(arr_i_j)
+  return z_sum
+
+''' The foata bijection '''
+
+def foata_correct(rep):
+  if len(rep)>=2:
+    if rep[-1]>=rep[-2]:
+      i = len(rep)-2
+      while i >=1:
+        if rep[i-1]>rep[-1]:
+          rep[i-1],rep[i] = rep[i],rep[i-1]
+        i-=1
+    elif rep[-1]<rep[-2]:
+      i = len(rep)-2
+      while i >=1:
+        if rep[i-1]<=rep[-1]:
+          rep[i-1],rep[i] = rep[i],rep[i-1]
+        i-=1
+
+
+def foata(rep):
+  foata_rep = []
+  for i in range(len(rep)):
+    foata_rep.append(rep[i])
+    foata_correct(foata_rep)
+  return foata_rep
+
+def foata_distance(rep):
+  distance = []
+  for i in range(len(rep)-1):
+    distance.append(rep[i+1]-rep[i])
+  return distance
+
+
+def permutations(n):
+    if n == 1:
+        yield [1]
+    else:
+        for p in permutations(n - 1):
+            for i in range(n):
+                yield p[:i] + [n] + p[i:]
+  
+
+def permutation_orbits_distribution(n):
+  found_rep = []
+  counter_dict = {}
+  orbit_dict = {}
+
+  for rep in permutations(n):
+    if rep not in found_rep:
+      arr = []
+      arr.append([rep,inv(rep),maj(rep),foata_distance(rep)])
+      found_rep.append(copy.deepcopy(rep))
+      foata_rep = foata(rep)
+      counter = 1
+      while foata_rep != rep:
+        found_rep.append(copy.deepcopy(foata_rep))
+        arr.append([foata_rep,inv(foata_rep),maj(foata_rep),foata_distance(foata_rep)])
+        foata_rep = foata(foata_rep)
+        counter += 1
+      if counter in counter_dict:
+        counter_dict[counter] += 1
+        orbit_dict[counter].append(copy.deepcopy(arr))
+      else:
+        counter_dict[counter] = 1
+        orbit_dict[counter] = [copy.deepcopy(arr)]
+  print(counter_dict)
+  overall_sum = 0
+  keys = [key for key,value in counter_dict.items()]
+  values = [value for key,value in counter_dict.items()]
+
+  for i in range(len(counter_dict)):
+    overall_sum += keys[i]*values[i]
+  return orbit_dict
 
 
 
+# orbits = permutation_orbits_distribution(5)
+
+# for value in orbits.values():
+#   for orbit in value:
+#       print(sum([rep[2]+rep[1] for rep in orbit])/len(orbit))
+
+''' The odd even foata bijection '''
+
+def odd_even_foata(rep):
+  foata_rep = []
+  for i in range(len(rep)):
+    foata_rep.append(rep[i])
+    odd_even_foata_correct(foata_rep)
+  return foata_rep
+
+def odd_even_foata_correct(rep):
+  if len(rep)>=2:
+    if rep[-2]>rep[-1] and rep[-1]%2 == 0:
+      i = len(rep)-2
+      while i >=1:
+        if not (rep[i-1] > rep[-1] and rep[-1]%2 == 0):
+          rep[i-1],rep[i] = rep[i],rep[i-1]
+        i-=1
+    else:
+      i = len(rep)-2
+      while i >=1:
+        if rep[i-1]>rep[-1] and rep[-1]%2 == 0:
+          rep[i-1],rep[i] = rep[i],rep[i-1]
+        i-=1
+
+def permutation_orbits_distribution_odd_even(n):
+  found_rep = []
+  counter_dict = {}
+  orbit_dict = {}
+
+  for rep in permutations(n):
+    if rep not in found_rep:
+      arr = []
+      arr.append([rep,inv(rep),stat_even(rep)])
+      found_rep.append(copy.deepcopy(rep))
+      foata_rep = odd_even_foata(rep)
+      counter = 1
+      while foata_rep != rep:
+        found_rep.append(copy.deepcopy(foata_rep))
+        arr.append([foata_rep,inv(foata_rep),stat_even(foata_rep)])
+        foata_rep = odd_even_foata(foata_rep)
+        counter += 1
+      if counter in counter_dict:
+        counter_dict[counter] += 1
+        orbit_dict[counter].append(copy.deepcopy(arr))
+      else:
+        counter_dict[counter] = 1
+        orbit_dict[counter] = [copy.deepcopy(arr)]
+  print(counter_dict)
+  overall_sum = 0
+  keys = [key for key,value in counter_dict.items()]
+  values = [value for key,value in counter_dict.items()]
+
+  for i in range(len(counter_dict)):
+    overall_sum += keys[i]*values[i]
+  return orbit_dict
 
 
+''' modolu 3 foata bijection'''
 
+def third_foata(rep):
+  foata_rep = []
+  for i in range(len(rep)):
+    foata_rep.append(rep[i])
+    third_foata_correct(foata_rep)
+  return foata_rep
+
+def third_foata_correct(rep):
+  if len(rep)>=2:
+    if rep[-2]>rep[-1] and rep[-1]%3 == 0:
+      i = len(rep)-2
+      while i >=1:
+        if not (rep[i-1] > rep[-1] and rep[-1]%3 == 0):
+          rep[i-1],rep[i] = rep[i],rep[i-1]
+        i-=1
+    else:
+      i = len(rep)-2
+      while i >=1:
+        if rep[i-1]>rep[-1] and rep[-1]%3 == 0:
+          rep[i-1],rep[i] = rep[i],rep[i-1]
+        i-=1
+
+def permutation_orbits_distribution_third(n):
+  found_rep = []
+  counter_dict = {}
+  orbit_dict = {}
+
+  for rep in permutations(n):
+    if rep not in found_rep:
+      arr = []
+      arr.append([rep,inv(rep),stat_third(rep)])
+      found_rep.append(copy.deepcopy(rep))
+      foata_rep = third_foata(rep)
+      counter = 1
+      while foata_rep != rep:
+        found_rep.append(copy.deepcopy(foata_rep))
+        arr.append([foata_rep,inv(foata_rep),stat_third(foata_rep)])
+        foata_rep = third_foata(foata_rep)
+        counter += 1
+      if counter in counter_dict:
+        counter_dict[counter] += 1
+        orbit_dict[counter].append(copy.deepcopy(arr))
+      else:
+        counter_dict[counter] = 1
+        orbit_dict[counter] = [copy.deepcopy(arr)]
+  print(counter_dict)
+  overall_sum = 0
+  keys = [key for key,value in counter_dict.items()]
+  values = [value for key,value in counter_dict.items()]
+
+  for i in range(len(counter_dict)):
+    overall_sum += keys[i]*values[i]
+  return orbit_dict
+
+for i in range(5,6):
+  orbit_dict = permutation_orbits_distribution(i)
+  arr1 = []
+   # dictionary with the inversion number as key and the number of permutations in an orbit of length k as the value
+  for key,value in orbit_dict.items():
+    arr1.append(sum([sum([inv(rep[0]) for rep in orbit]) for orbit in value])/(key*len(value)))
+    dist_dict = {}
+    for orbit in value:
+      for rep in orbit:
+        if rep[1] in dist_dict:
+          dist_dict[rep[1]]+=1
+        else:
+          dist_dict[rep[1]]=1
+    print(dist_dict)
+  print('------------>')
+
+  # sorted_keys = [key for key in dist_dict.keys()]
+  # print([dist_dict[key] for key in sorted_keys])
+  xml = 5
+
+# for i in range(1,11):
+#   orbit_dict_odd_even = permutation_orbits_distribution_odd_even(i)
+#   arr2 = []
+#   for key,value in orbit_dict_odd_even.items():
+#     arr2.append(sum([sum([inv(rep[0]) for rep in orbit]) for orbit in value])/(key*len(value)))
+
+
+# for i in range(1,9):
+#   orbit_dict_third = permutation_orbits_distribution_third(i)
+#   arr3 = []
+#   for key,value in orbit_dict_third.items():
+#     arr3.append(sum([sum([inv(rep[0]) for rep in orbit]) for orbit in value])/(key*len(value)))
+#   xml = 5
