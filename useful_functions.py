@@ -2,6 +2,7 @@
 ''' setup functions '''
 import copy
 import math
+import pandas as pd
 
 
 def get_partitions(set_):
@@ -274,6 +275,15 @@ def des(rep):
         des += 1
   return des
 
+def des_tuple(rep):
+  des = []
+  for i in range(len(rep) - 1):
+    if rep[i] > rep[i + 1]:
+        des.append((i+1,i+2))
+  return des
+
+
+
 def asc(rep):
   asc = 0
   for i in range(len(rep) - 1):
@@ -383,7 +393,6 @@ def permutation_orbits_distribution(n):
       else:
         counter_dict[counter] = 1
         orbit_dict[counter] = [copy.deepcopy(arr)]
-  print(counter_dict)
   overall_sum = 0
   keys = [key for key,value in counter_dict.items()]
   values = [value for key,value in counter_dict.items()]
@@ -513,25 +522,118 @@ def permutation_orbits_distribution_third(n):
     overall_sum += keys[i]*values[i]
   return orbit_dict
 
-for i in range(5,6):
-  orbit_dict = permutation_orbits_distribution(i)
-  arr1 = []
-   # dictionary with the inversion number as key and the number of permutations in an orbit of length k as the value
-  for key,value in orbit_dict.items():
-    arr1.append(sum([sum([inv(rep[0]) for rep in orbit]) for orbit in value])/(key*len(value)))
-    dist_dict = {}
-    for orbit in value:
-      for rep in orbit:
-        if rep[1] in dist_dict:
-          dist_dict[rep[1]]+=1
-        else:
-          dist_dict[rep[1]]=1
-    print(dist_dict)
-  print('------------>')
+orbit_dict = permutation_orbits_distribution(5)
+arr = []
+for key in orbit_dict.keys():
+  length = 0
+  for orbit in orbit_dict[key]:
+    avg = 0
+    for rep in orbit:
+      avg += des(rep[0])
+    avg  = avg/len(orbit)
+    arr.append(avg)
+
+flag = True
+
+for x in arr:
+  if x != arr[0]:
+    flag = False
+
+if flag:
+  print("Homomesy!")
+
+  # arr1 = []
+  # # dist_dict_df = pd.DataFrame()
+  # # dist_dict_df_2 = pd.DataFrame()
+  #  # dictionary with the inversion number as key and the number of permutations in an orbit of length k as the value
+  # for key,value in orbit_dict.items():
+  #   arr1.append(sum([sum([inv(rep[0]) for rep in orbit]) for orbit in value])/(key*len(value)))
+  #   dist_dict = {}
+  #   for orbit in value:
+  #     for rep in orbit:
+  #       length = len(orbit)
+  #       inversion = int(rep[1])
+  #       # put the rep[1] in the df with the inversion number as column and the orbit length as the row
+  #       # if dist_dict_df.empty:
+  #       #   dist_dict_df = pd.DataFrame([1],columns=[inversion],index=[length])
+        
+  #       # else:
+  #       #   if inversion in dist_dict_df.columns:
+  #       #     if length in dist_dict_df.index:
+  #       #       if pd.isna(dist_dict_df.loc[length,inversion]):
+  #       #         dist_dict_df.loc[length,inversion] = 1
+  #       #       else:
+  #       #         x = dist_dict_df.loc[length,inversion]
+  #       #         dist_dict_df.loc[length,inversion] += 1
+  #       #     else:
+  #       #       dist_dict_df.loc[length,inversion] = 1
+  #       #   else:
+  #       #     if length in dist_dict_df.index:
+  #       #       dist_dict_df[inversion] = 0
+  #       #       dist_dict_df.loc[length,inversion] = 1
+  #       #     else:
+  #       #       dist_dict_df[inversion] = 0
+  #       #       dist_dict_df.loc[length,inversion] = 1
+
+  #       # if dist_dict_df_2.empty:
+  #       #   dist_dict_df_2 = pd.DataFrame([1],columns=[length],index=[inversion])
+
+  #       # else:
+  #       #   if length in dist_dict_df_2.columns:
+  #       #     if inversion in dist_dict_df_2.index:
+  #       #       if pd.isna(dist_dict_df_2.loc[inversion,length]):
+  #       #         dist_dict_df_2.loc[inversion,length] = 1
+  #       #       else:
+  #       #         x = dist_dict_df_2.loc[inversion,length]
+  #       #         dist_dict_df_2.loc[inversion,length] += 1
+  #       #     else:
+  #       #       dist_dict_df_2.loc[inversion,length] = 1
+  #       #   else:
+  #       #     if inversion in dist_dict_df_2.index:
+  #       #       dist_dict_df_2[length] = 0
+  #       #       dist_dict_df_2.loc[inversion,length] = 1
+  #       #     else:
+  #       #       dist_dict_df_2[length] = 0
+  #       #       dist_dict_df_2.loc[inversion,length] = 1
+  #       if rep[1] in dist_dict:
+  #         dist_dict[rep[1]]+=1
+  #       else:
+  #         dist_dict[rep[1]]=1
+  #   if key == 1:
+  #     inv_foata_orbit_dict = {}
+  #     for orbit in value:
+  #       #print (orbit[0][0],orbit[0][1],orbit[0][2])
+  #       if orbit[0][1] in inv_foata_orbit_dict:
+  #         inv_foata_orbit_dict[orbit[0][1]] += 1
+  #       else:
+  #         inv_foata_orbit_dict[orbit[0][1]] = 1
+  #     #print(inv_foata_orbit_dict)
+  #   #print(dist_dict)
+  # # dist_dict_df = dist_dict_df.fillna(0)
+  # # #sum
+  # # dist_dict_df.loc['sum'] = dist_dict_df.sum()
+  # # # sort columns
+  # # dist_dict_df = dist_dict_df.reindex(sorted(dist_dict_df.columns), axis=1)
+  # # # convert all values to int
+  # # dist_dict_df = dist_dict_df.astype(int)
+  # # print(dist_dict_df)
+  # # # export to csv
+  # # dist_dict_df.to_csv('df/dist_dict_df_{}.csv'.format(i))
+
+  # # dist_dict_df_2 = dist_dict_df_2.fillna(0)
+  # # #create a new row at the end which sums the values of each column
+  # # dist_dict_df_2.loc['sum'] = dist_dict_df_2.sum()
+  # # # sort columns
+  # # dist_dict_df_2 = dist_dict_df_2.reindex(sorted(dist_dict_df_2.columns), axis=1)
+  # # # convert all values to int
+  # # dist_dict_df_2 = dist_dict_df_2.astype(int)
+  # # print(dist_dict_df_2)
+  # # export to csv
+  # #dist_dict_df_2.to_csv('df_2/dist_dict_df_2_{}.csv'.format(i))
+  # #print(dist_dict)
 
   # sorted_keys = [key for key in dist_dict.keys()]
   # print([dist_dict[key] for key in sorted_keys])
-  xml = 5
 
 # for i in range(1,11):
 #   orbit_dict_odd_even = permutation_orbits_distribution_odd_even(i)
